@@ -1,3 +1,4 @@
+# นำเข้าโมดูลที่ต้องการใช้งาน
 import time
 import robomaster
 import csv
@@ -33,13 +34,14 @@ def update_and_log(**kwargs):
     csv_file.flush()
 
 
-# ส่วนบันทึก Callcack Data
+# ส่วนบันทึกและแสดง Callcack Data ของ distance
 def sub_data_handler_dis(sub_info):
     distance = sub_info
     print("tof1:{0}".format(distance[0]))
 
     update_and_log(distance=distance[0])
 
+# ส่วนบันทึกและแสดง Callcack Data ขององศาการหมุนของ gimbal
 def sub_data_handler_ang(angle_info):
     pitch_angle, yaw_angle, pitch_ground_angle, yaw_ground_angle = angle_info
     print("gimbal angle: pitch_angle:{0}, yaw_angle:{1}, pitch_ground_angle:{2}, yaw_ground_angle:{3}".format(
@@ -47,9 +49,9 @@ def sub_data_handler_ang(angle_info):
 
     update_and_log(pitch_angle=pitch_angle, yaw_angle = yaw_angle, pitch_ground_angle=pitch_ground_angle, yaw_ground_angle=yaw_ground_angle)
 
-if __name__ == '__main__':
-    ep_robot = robot.Robot()
-    ep_robot.initialize(conn_type="ap")
+if __name__ == '__main__': # ส่วนของ main function
+    ep_robot = robot.Robot() #สร้าง object ของหุ่นยนต์
+    ep_robot.initialize(conn_type="ap") 
 
 # เริ่มบันทึกข้อมูลลง CSV เมื่อหุ่นเริ่มทำงานเท่านั้น
     logging_enabled = True
@@ -57,21 +59,21 @@ if __name__ == '__main__':
     ep_gimbal = ep_robot.gimbal
     ep_sensor = ep_robot.sensor
 
-    ep_gimbal.moveto(pitch=0, yaw=0, yaw_speed=10).wait_for_completed() #รีหน้าตรง
-    ep_gimbal.moveto(yaw=90 ,yaw_speed=10).wait_for_completed() #หมุนขวา
+    ep_gimbal.moveto(pitch=0, yaw=0, yaw_speed=10).wait_for_completed() #รีเช็ตหน้า gimbal ให้ตรง
+    ep_gimbal.moveto(yaw=90 ,yaw_speed=10).wait_for_completed() #หมุนทางขวา gimbal 90 องศา
 
-    ep_sensor.sub_distance(freq=5, callback=sub_data_handler_dis)
-    ep_gimbal.sub_angle(freq=5, callback=sub_data_handler_ang)
+    ep_sensor.sub_distance(freq=5, callback=sub_data_handler_dis) #เปิดใช้งาน sensor เพื่อวัดระยะวัตถุตรงหน้า
+    ep_gimbal.sub_angle(freq=5, callback=sub_data_handler_ang) #บันทึกองศาการหมุนของ gimbal
     # time.sleep(60)
    
-    ep_gimbal.moveto(yaw=-90 ,yaw_speed=10).wait_for_completed() #หมุนซ้าย
+    ep_gimbal.moveto(yaw=-90 ,yaw_speed=10).wait_for_completed() #หมุนทางซ้าย gimbal 90 องศา
 
     logging_enabled = False  # หยุดบันทึกข้อมูลเมื่อเสร็จสิ้นการเคลื่อนที่
 
-    ep_sensor.unsub_distance()
-    ep_gimbal.unsub_angle()
+    ep_sensor.unsub_distance() # หยุดเก็บข้อมูล sensor ที่ใช้วัดระยะทาง
+    ep_gimbal.unsub_angle() # หยุดเก็บข้อมูล sensor ที่ใช้เก็บองศาการหมุนของ gimbal
     
-    ep_gimbal.moveto(pitch=0, yaw=0, yaw_speed=10).wait_for_completed() #รีหน้าตรง
+    ep_gimbal.moveto(pitch=0, yaw=0, yaw_speed=10).wait_for_completed() #รีเช็ตหน้า gimbal ให้ตรง
 
-    ep_robot.close()
-    csv_file.close()
+    ep_robot.close() # ปิดการใช้งานหุ่นยนต์
+    csv_file.close() # ปิดการบันทึก file csv
